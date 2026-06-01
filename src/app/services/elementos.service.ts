@@ -7,7 +7,7 @@ import { environment } from '../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ElementosService {
   // TODO: verifique o path exato no seu ElementController (@RequestMapping)
-  private readonly API_URL = `${environment.apiUrl}/element`;
+  private readonly API_URL = `${environment.apiUrl}/elements`;
 
   constructor(private http: HttpClient) {}
 

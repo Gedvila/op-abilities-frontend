@@ -27,7 +27,7 @@ interface Tab {
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
+export class AppComponent {
   readonly tabs: Tab[] = [
     { id: 'elementos',           label: 'Elementos',           icon: '🌊' },
     { id: 'poderes-paranormais', label: 'Poderes Paranormais', icon: '✨' },
