@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { PoderesParanormaisService } from '../../shared/services/poderes-paranormais.service';
+import { PoderesParanormaisService } from '../../services/poderes-paranormais.service';
 import { PoderParanormal } from '../../models/poder-paranormal.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
 
@@ -9,9 +9,9 @@ import { DataCardComponent, CardField } from '../data-card/data-card.component';
   templateUrl: './poderes-paranormais.component.html',
 })
 export class PoderesParanormaisComponent implements OnInit {
-  items    = signal<PoderParanormal[]>([]);
+  items     = signal<PoderParanormal[]>([]);
   isLoading = signal(true);
-  error    = signal<string | null>(null);
+  error     = signal<string | null>(null);
 
   constructor(private poderesService: PoderesParanormaisService) {}
 
@@ -22,16 +22,25 @@ export class PoderesParanormaisComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.error.set('Erro ao carregar poderes paranormais. Verifique a API.');
+        this.error.set('Erro ao carregar poderes paranormais. Verifique se a API está a correr.');
         this.isLoading.set(false);
       },
     });
   }
 
-  /** TODO: mapeie os campos do DTO para pares label/valor */
+  /**
+   * Mapeia os campos do DTO para pares label/valor exibidos no card.
+   * Adicione uma linha por campo assim que extender o modelo PoderParanormal.
+   *
+   * Exemplos (descomente após adicionar os campos ao modelo):
+   *   { label: 'Elemento',   value: item.element?.name    ?? '—' },
+   *   { label: 'Execução',   value: item.executionType    ?? '—' },
+   *   { label: 'Custo (PE)', value: item.cost             ?? '—' },
+   *   { label: 'Alcance',    value: item.range            ?? '—' },
+   */
   getFields(item: PoderParanormal): CardField[] {
     return [
-      // Exemplo: { label: 'Custo PE', value: item.custoPE }
+      // TODO: adicione campos conforme o DTO crescer
     ];
   }
 }

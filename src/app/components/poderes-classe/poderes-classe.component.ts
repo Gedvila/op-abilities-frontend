@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { PoderesClasseService } from '../../shared/services/poderes-classe.service';
+import { PoderesClasseService } from '../../services/poderes-classe.service';
 import { PoderClasse } from '../../models/poder-classe.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
 
@@ -9,9 +9,9 @@ import { DataCardComponent, CardField } from '../data-card/data-card.component';
   templateUrl: './poderes-classe.component.html',
 })
 export class PoderesClasseComponent implements OnInit {
-  items    = signal<PoderClasse[]>([]);
+  items     = signal<PoderClasse[]>([]);
   isLoading = signal(true);
-  error    = signal<string | null>(null);
+  error     = signal<string | null>(null);
 
   constructor(private poderesClasseService: PoderesClasseService) {}
 
@@ -22,16 +22,24 @@ export class PoderesClasseComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.error.set('Erro ao carregar poderes de classe. Verifique a API.');
+        this.error.set('Erro ao carregar poderes de classe. Verifique se a API está a correr.');
         this.isLoading.set(false);
       },
     });
   }
 
-  /** TODO: mapeie os campos do DTO para pares label/valor */
+  /**
+   * Mapeia os campos do DTO para pares label/valor exibidos no card.
+   * Adicione uma linha por campo assim que extender o modelo PoderClasse.
+   *
+   * Exemplos (descomente após adicionar os campos ao modelo):
+   *   { label: 'Arquétipo',    value: item.archetype?.name ?? '—' },
+   *   { label: 'Nível',        value: item.level           ?? '—' },
+   *   { label: 'Pré-requisito',value: item.prereq          ?? '—' },
+   */
   getFields(item: PoderClasse): CardField[] {
     return [
-      // Exemplo: { label: 'Classe', value: item.classe }
+      // TODO: adicione campos conforme o DTO crescer
     ];
   }
 }

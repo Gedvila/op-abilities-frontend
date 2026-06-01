@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ElementosService } from '../../shared/services/elementos.service';
+import { ElementosService } from '../../services/elementos.service';
 import { Elemento } from '../../models/elemento.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
 
@@ -9,9 +9,9 @@ import { DataCardComponent, CardField } from '../data-card/data-card.component';
   templateUrl: './elementos.component.html',
 })
 export class ElementosComponent implements OnInit {
-  items    = signal<Elemento[]>([]);
+  items     = signal<Elemento[]>([]);
   isLoading = signal(true);
-  error    = signal<string | null>(null);
+  error     = signal<string | null>(null);
 
   constructor(private elementosService: ElementosService) {}
 
@@ -22,16 +22,22 @@ export class ElementosComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.error.set('Erro ao carregar elementos. Verifique a API.');
+        this.error.set('Erro ao carregar elementos. Verifique se a API está a correr.');
         this.isLoading.set(false);
       },
     });
   }
 
-  /** TODO: mapeie os campos do DTO para pares label/valor */
+  /**
+   * Mapeia os campos do DTO para pares label/valor exibidos no card.
+   * Adicione uma linha por campo assim que extender o modelo Elemento.
+   *
+   * Exemplo:
+   *   { label: 'Tipo de Dano', value: item.damageKind?.name ?? '—' },
+   */
   getFields(item: Elemento): CardField[] {
     return [
-      // Exemplo: { label: 'Tipo', value: item.tipo }
+      // TODO: adicione campos conforme o DTO crescer
     ];
   }
 }
