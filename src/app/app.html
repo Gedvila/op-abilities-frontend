@@ -1,13 +1,37 @@
-<main style="padding: 20px; font-family: sans-serif;">
-  <h1>Tipos de Dano</h1>
+<header class="navbar">
+  <div class="navbar-inner">
+    <span class="navbar-brand">
+      <span class="brand-icon">⚡</span> OP Abilities
+    </span>
 
-  <ul>
-    @for (damageKind of damageList; track damageKind.id) {
-      <li style="margin-bottom: 10px;">
-        <strong>{{ damageKind.name }}</strong>: {{ damageKind.description }}
-      </li>
-    } @empty {
-      <li>A carregar dados do servidor... Ou nenhum tipo de dano encontrado.</li>
-    }
-  </ul>
+    <nav class="navbar-tabs" role="tablist">
+      @for (tab of tabs; track tab.id) {
+        <button
+          class="tab-btn"
+          role="tab"
+          [class.active]="activeTab() === tab.id"
+          [attr.aria-selected]="activeTab() === tab.id"
+          (click)="setTab(tab.id)"
+        >
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span class="tab-label">{{ tab.label }}</span>
+        </button>
+      }
+    </nav>
+  </div>
+</header>
+
+<main class="page-content" role="tabpanel">
+  @if (activeTab() === 'elementos') {
+    <app-elementos />
+  }
+  @if (activeTab() === 'poderes-paranormais') {
+    <app-poderes-paranormais />
+  }
+  @if (activeTab() === 'poderes-classe') {
+    <app-poderes-classe />
+  }
+  @if (activeTab() === 'itens') {
+    <app-itens />
+  }
 </main>

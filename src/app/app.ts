@@ -1,7 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { DamageKindService } from './shared/services/damage-kind.service';
-import { DamageKind } from './models/damage-kind.model';
 
 @Component({
   selector: 'app-root',

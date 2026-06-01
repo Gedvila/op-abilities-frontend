@@ -1,0 +1,30 @@
+<section class="section">
+  <div class="section-header">
+    <h2 class="section-title">Poderes de Classe</h2>
+    @if (!isLoading() && !error()) {
+      <span class="section-count">{{ items().length }} encontrados</span>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-loading">
+      <div class="spinner"></div>
+      <span>A carregar poderes de classe...</span>
+    </div>
+  } @else if (error()) {
+    <div class="state-error">{{ error() }}</div>
+  } @else {
+    <div class="cards-grid">
+      @for (item of items(); track item.id) {
+        <app-data-card
+          [title]="item.name"
+          [description]="item.description"
+          [fields]="getFields(item)"
+          badge="Classe"
+        />
+      } @empty {
+        <p class="state-empty">Nenhum poder de classe encontrado.</p>
+      }
+    </div>
+  }
+</section>

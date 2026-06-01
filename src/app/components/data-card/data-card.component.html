@@ -1,0 +1,22 @@
+<article class="card">
+  @if (badge) {
+    <span class="card-badge">{{ badge }}</span>
+  }
+
+  <h3 class="card-title">{{ title }}</h3>
+
+  @if (description) {
+    <p class="card-description">{{ description }}</p>
+  }
+
+  @if (fields.length > 0) {
+    <ul class="card-fields">
+      @for (field of fields; track field.label) {
+        <li class="card-field">
+          <span class="field-label">{{ field.label }}</span>
+          <span class="field-value">{{ field.value }}</span>
+        </li>
+      }
+    </ul>
+  }
+</article>
