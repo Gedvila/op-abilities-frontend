@@ -16,4 +16,8 @@ export class PoderesParanormaisService {
     if (name.trim()) params['name'] = name.trim();
     return this.http.get<Page<PoderParanormal>>(this.API_URL, { params });
   }
+
+  insert(dto: Omit<PoderParanormal, 'id'>): Observable<PoderParanormal> {
+    return this.http.post<PoderParanormal>(this.API_URL, dto);
+  }
 }

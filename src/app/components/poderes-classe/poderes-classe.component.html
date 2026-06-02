@@ -6,20 +6,18 @@
     }
   </div>
 
-  <div class="search-bar">
+  <div class="search-row">
     <input
       type="text"
       class="search-input"
       placeholder="Pesquisar por nome..."
       (input)="onSearch($event)"
     />
+    <button class="btn-create" (click)="openForm()" title="Nova habilidade de classe">＋</button>
   </div>
 
   @if (isLoading()) {
-    <div class="state-loading">
-      <div class="spinner"></div>
-      <span>A carregar poderes de classe...</span>
-    </div>
+    <div class="state-loading"><div class="spinner"></div><span>A carregar...</span></div>
   } @else if (error()) {
     <div class="state-error">{{ error() }}</div>
   } @else {
@@ -30,10 +28,64 @@
           [description]="item.description"
           [fields]="getFields(item)"
           [badge]="item.archetype"
+          (cardClick)="openDetail(item)"
         />
       } @empty {
-        <p class="state-empty">Nenhum poder de classe encontrado.</p>
+        <p class="state-empty">Nenhuma habilidade de classe encontrada.</p>
       }
     </div>
   }
 </section>
+
+<!-- Modal de detalhe -->
+<app-modal-overlay [isOpen]="selectedItem() !== null" (closed)="closeDetail()">
+  @if (selectedItem(); as item) {
+    <span class="modal-badge">{{ item.archetype }}</span>
+    <h2 class="modal-title">{{ item.name }}</h2>
+    @if (item.description) {
+      <p class="modal-description">{{ item.description }}</p>
+    }
+    <ul class="modal-fields">
+      <li class="modal-field">
+        <span class="modal-field-label">Arquétipo:</span>
+        <span class="modal-field-value">{{ item.archetype ?? '—' }}</span>
+      </li>
+      <li class="modal-field">
+        <span class="modal-field-label">Pré-requisito:</span>
+        <span class="modal-field-value">{{ item.prerequisite ?? '—' }}</span>
+      </li>
+    </ul>
+  }
+</app-modal-overlay>
+
+<!-- Modal de cadastro -->
+<app-modal-overlay [isOpen]="showForm()" (closed)="closeForm()">
+  <h2 class="modal-title">Nova Habilidade de Classe</h2>
+  <form class="modal-form" (ngSubmit)="onSubmitCreate()">
+    <div class="form-group">
+      <label class="form-label">Nome *</label>
+      <input class="form-input" [(ngModel)]="newItem.name" name="name" placeholder="Nome da habilidade" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Arquétipo</label>
+      <input class="form-input" [(ngModel)]="newItem.archetype" name="archetype" placeholder="Ex: Combatente" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pré-requisito</label>
+      <input class="form-input" [(ngModel)]="newItem.prerequisite" name="prerequisite" placeholder="Ex: Nível 2" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="newItem.description" name="description" placeholder="Descrição da habilidade"></textarea>
+    </div>
+    @if (saveError()) {
+      <div class="state-error">{{ saveError() }}</div>
+    }
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="isSaving()">
+        {{ isSaving() ? 'A guardar...' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</app-modal-overlay>

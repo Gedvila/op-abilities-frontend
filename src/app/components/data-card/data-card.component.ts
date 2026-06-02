@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 export interface CardField {
   label: string;
@@ -23,4 +23,6 @@ export class DataCardComponent {
 
   /** Rótulo colorido no canto superior do card */
   @Input() badge?: string;
+
+  @Output() cardClick = new EventEmitter<void>();
 }

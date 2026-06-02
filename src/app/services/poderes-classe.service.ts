@@ -16,4 +16,8 @@ export class PoderesClasseService {
     if (name.trim()) params['name'] = name.trim();
     return this.http.get<Page<PoderClasse>>(this.API_URL, { params });
   }
+
+  insert(dto: Omit<PoderClasse, 'id'>): Observable<PoderClasse> {
+    return this.http.post<PoderClasse>(this.API_URL, dto);
+  }
 }

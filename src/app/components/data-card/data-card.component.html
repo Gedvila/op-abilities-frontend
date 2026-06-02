@@ -1,4 +1,4 @@
-<article class="card">
+<article class="card" (click)="cardClick.emit()">
   @if (badge) {
     <span class="card-badge">{{ badge }}</span>
   }
