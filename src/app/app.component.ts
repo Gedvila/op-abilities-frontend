@@ -28,7 +28,7 @@ interface Tab {
 })
 export class AppComponent {
   readonly tabs: Tab[] = [
-    { id: 'elementos', label: 'Elementos' },
+    // { id: 'elementos', label: 'Elementos' },
     { id: 'poderes-paranormais', label: 'Poderes Paranormais' },
     { id: 'poderes-classe', label: 'Poderes de Classe' },
     { id: 'itens', label: 'Itens' },
@@ -38,7 +38,7 @@ export class AppComponent {
 
   setTab(id: TabId): void {
     if (this.activeTab() === id) {
-      this.activeTab.set(null); // clica na aba ativa → volta ao início
+      this.activeTab.set(null);
     } else {
       this.activeTab.set(id);
     }
