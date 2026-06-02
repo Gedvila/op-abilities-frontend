@@ -1,46 +1,62 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { PoderesParanormaisService } from '../../services/poderes-paranormais.service';
 import { PoderParanormal } from '../../models/poder-paranormal.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-poderes-paranormais',
   imports: [DataCardComponent],
   templateUrl: './poderes-paranormais.component.html',
 })
-export class PoderesParanormaisComponent implements OnInit {
-  items     = signal<PoderParanormal[]>([]);
+export class PoderesParanormaisComponent implements OnInit, OnDestroy {
+  items = signal<PoderParanormal[]>([]);
   isLoading = signal(true);
-  error     = signal<string | null>(null);
+  error = signal<string | null>(null);
+
+  private searchSubject = new Subject<string>();
 
   constructor(private poderesService: PoderesParanormaisService) {}
 
   ngOnInit(): void {
-    this.poderesService.findAll().subscribe({
-      next: (data) => {
-        this.items.set(data);
+    this.searchSubject
+      .pipe(
+        debounceTime(400), // espera 400ms após o utilizador parar de escrever
+        distinctUntilChanged(), // só dispara se o valor mudou de facto
+      )
+      .subscribe((term) => this.fetchData(term));
+
+    this.fetchData(''); // carregamento inicial
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
+  }
+
+  onSearch(event: Event): void {
+    const term = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(term);
+  }
+
+  private fetchData(name: string): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    this.poderesService.findAll(name).subscribe({
+      next: (page) => {
+        this.items.set(page.content);
         this.isLoading.set(false);
       },
       error: () => {
-        this.error.set('Erro ao carregar poderes paranormais. Verifique se a API está a correr.');
+        this.error.set('Erro ao carregar poderes paranormais.');
         this.isLoading.set(false);
       },
     });
   }
 
-  /**
-   * Mapeia os campos do DTO para pares label/valor exibidos no card.
-   * Adicione uma linha por campo assim que extender o modelo PoderParanormal.
-   *
-   * Exemplos (descomente após adicionar os campos ao modelo):
-   *   { label: 'Elemento',   value: item.element?.name    ?? '—' },
-   *   { label: 'Execução',   value: item.executionType    ?? '—' },
-   *   { label: 'Custo (PE)', value: item.cost             ?? '—' },
-   *   { label: 'Alcance',    value: item.range            ?? '—' },
-   */
   getFields(item: PoderParanormal): CardField[] {
     return [
-      // TODO: adicione campos conforme o DTO crescer
+      { label: 'Pré-requisito', value: item.prerequisite ?? '—' },
+      { label: 'Afinidade', value: item.affinity ?? '—' },
     ];
   }
 }

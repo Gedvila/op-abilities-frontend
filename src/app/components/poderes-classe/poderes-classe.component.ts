@@ -1,45 +1,59 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { PoderesClasseService } from '../../services/poderes-classe.service';
 import { PoderClasse } from '../../models/poder-classe.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-poderes-classe',
   imports: [DataCardComponent],
   templateUrl: './poderes-classe.component.html',
 })
-export class PoderesClasseComponent implements OnInit {
-  items     = signal<PoderClasse[]>([]);
+export class PoderesClasseComponent implements OnInit, OnDestroy {
+  items = signal<PoderClasse[]>([]);
   isLoading = signal(true);
-  error     = signal<string | null>(null);
+  error = signal<string | null>(null);
+
+  private searchSubject = new Subject<string>();
 
   constructor(private poderesClasseService: PoderesClasseService) {}
 
   ngOnInit(): void {
-    this.poderesClasseService.findAll().subscribe({
-      next: (data) => {
-        this.items.set(data);
+    this.searchSubject
+      .pipe(debounceTime(400), distinctUntilChanged())
+      .subscribe((term) => this.fetchData(term));
+
+    this.fetchData('');
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
+  }
+
+  onSearch(event: Event): void {
+    const term = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(term);
+  }
+
+  private fetchData(name: string): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    this.poderesClasseService.findAll(name).subscribe({
+      next: (page) => {
+        this.items.set(page.content);
         this.isLoading.set(false);
       },
       error: () => {
-        this.error.set('Erro ao carregar poderes de classe. Verifique se a API está a correr.');
+        this.error.set('Erro ao carregar poderes de classe.');
         this.isLoading.set(false);
       },
     });
   }
 
-  /**
-   * Mapeia os campos do DTO para pares label/valor exibidos no card.
-   * Adicione uma linha por campo assim que extender o modelo PoderClasse.
-   *
-   * Exemplos (descomente após adicionar os campos ao modelo):
-   *   { label: 'Arquétipo',    value: item.archetype?.name ?? '—' },
-   *   { label: 'Nível',        value: item.level           ?? '—' },
-   *   { label: 'Pré-requisito',value: item.prereq          ?? '—' },
-   */
   getFields(item: PoderClasse): CardField[] {
     return [
-      // TODO: adicione campos conforme o DTO crescer
+      { label: 'Arquétipo', value: item.archetype ?? '—' },
+      { label: 'Pré-requisito', value: item.prerequisite ?? '—' },
     ];
   }
 }

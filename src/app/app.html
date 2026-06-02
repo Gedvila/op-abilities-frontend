@@ -1,7 +1,7 @@
 <header class="navbar">
   <div class="navbar-inner">
-    <span class="navbar-brand">
-      <span class="brand-icon">⚡</span> OP Abilities
+    <span class="navbar-brand" (click)="goHome()">
+      OP Abilities
     </span>
 
     <nav class="navbar-tabs" role="tablist">
@@ -13,7 +13,6 @@
           [attr.aria-selected]="activeTab() === tab.id"
           (click)="setTab(tab.id)"
         >
-          <span class="tab-icon">{{ tab.icon }}</span>
           <span class="tab-label">{{ tab.label }}</span>
         </button>
       }
@@ -21,17 +20,33 @@
   </div>
 </header>
 
+@if (activeTab() === null) {
+  <section class="home-hero">
+    <div class="home-content">
+      <h1 class="home-title">OP Abilities</h1>
+      <p class="home-subtitle">
+        Consulte elementos, poderes paranormais e habilidades de classe
+        do universo Ordem Paranormal
+      </p>
+      <div class="home-cards">
+        @for (tab of tabs; track tab.id) {
+          <button class="home-card" (click)="setTab(tab.id)">
+            <span class="home-card-label">{{ tab.label }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+}
+
 <main class="page-content" role="tabpanel">
   @if (activeTab() === 'elementos') {
-    <app-elementos />
-  }
-  @if (activeTab() === 'poderes-paranormais') {
-    <app-poderes-paranormais />
-  }
-  @if (activeTab() === 'poderes-classe') {
-    <app-poderes-classe />
-  }
-  @if (activeTab() === 'itens') {
-    <app-itens />
-  }
+    <app-elementos/>
+  } @if (activeTab() === 'poderes-paranormais') {
+  <app-poderes-paranormais/>
+} @if (activeTab() === 'poderes-classe') {
+  <app-poderes-classe/>
+} @if (activeTab() === 'itens') {
+  <app-itens/>
+}
 </main>

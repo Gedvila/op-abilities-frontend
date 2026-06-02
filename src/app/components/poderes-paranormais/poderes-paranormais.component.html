@@ -6,6 +6,15 @@
     }
   </div>
 
+  <div class="search-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Pesquisar por nome..."
+      (input)="onSearch($event)"
+    />
+  </div>
+
   @if (isLoading()) {
     <div class="state-loading">
       <div class="spinner"></div>
@@ -20,7 +29,7 @@
           [title]="item.name"
           [description]="item.description"
           [fields]="getFields(item)"
-          badge="Paranormal"
+          [badge]="item.element"
         />
       } @empty {
         <p class="state-empty">Nenhum poder paranormal encontrado.</p>

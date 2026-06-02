@@ -13,7 +13,6 @@ export type TabId =
 interface Tab {
   id: TabId;
   label: string;
-  icon: string;
 }
 
 @Component({
@@ -29,15 +28,23 @@ interface Tab {
 })
 export class AppComponent {
   readonly tabs: Tab[] = [
-    { id: 'elementos',           label: 'Elementos',           icon: '🌊' },
-    { id: 'poderes-paranormais', label: 'Poderes Paranormais', icon: '✨' },
-    { id: 'poderes-classe',      label: 'Poderes de Classe',   icon: '⚔️' },
-    { id: 'itens',               label: 'Itens',               icon: '🎒' },
+    { id: 'elementos', label: 'Elementos' },
+    { id: 'poderes-paranormais', label: 'Poderes Paranormais' },
+    { id: 'poderes-classe', label: 'Poderes de Classe' },
+    { id: 'itens', label: 'Itens' },
   ];
 
-  activeTab = signal<TabId>('elementos');
+  activeTab = signal<TabId | null>(null);
 
   setTab(id: TabId): void {
-    this.activeTab.set(id);
+    if (this.activeTab() === id) {
+      this.activeTab.set(null); // clica na aba ativa → volta ao início
+    } else {
+      this.activeTab.set(id);
+    }
+  }
+
+  goHome(): void {
+    this.activeTab.set(null);
   }
 }
