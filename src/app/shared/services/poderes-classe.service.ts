@@ -11,8 +11,8 @@ export class PoderesClasseService {
 
   constructor(private http: HttpClient) {}
 
-  findAll(name = ''): Observable<Page<PoderClasse>> {
-    const params: Record<string, string> = {};
+  findAll(name = '', page = 0, size = 20): Observable<Page<PoderClasse>> {
+    const params: Record<string, string | number> = { page, size };
     if (name.trim()) params['name'] = name.trim();
     return this.http.get<Page<PoderClasse>>(this.API_URL, { params });
   }

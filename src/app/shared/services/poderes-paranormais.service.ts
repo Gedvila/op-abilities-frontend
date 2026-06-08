@@ -11,8 +11,8 @@ export class PoderesParanormaisService {
 
   constructor(private http: HttpClient) {}
 
-  findAll(name = ''): Observable<Page<PoderParanormal>> {
-    const params: Record<string, string> = {};
+  findAll(name = '', page = 0, size = 20): Observable<Page<PoderParanormal>> {
+    const params: Record<string, string | number> = { page, size };
     if (name.trim()) params['name'] = name.trim();
     return this.http.get<Page<PoderParanormal>>(this.API_URL, { params });
   }

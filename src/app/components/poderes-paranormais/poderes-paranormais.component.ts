@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -17,6 +17,19 @@ import { ElementosService } from '../../shared/services/elementos.service';
 export class PoderesParanormaisComponent implements OnInit, OnDestroy {
   items = signal<PoderParanormal[]>([]);
   elementos = signal<Elemento[]>([]);
+  currentPage = signal(0);
+  totalPages = signal(0);
+  totalElements = signal(0);
+  visiblePages = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+    for (let i = Math.max(0, current - 2); i <= Math.min(total - 1, current + 2); i++) {
+      pages.push(i);
+    }
+    return pages;
+  });
+
   isLoading = signal(true);
   error = signal<string | null>(null);
 
@@ -35,6 +48,7 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
   saveError = signal<string | null>(null);
 
   private searchSubject = new Subject<string>();
+  private currentSearch = '';
 
   constructor(
     private poderesService: PoderesParanormaisService,
@@ -42,9 +56,10 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.searchSubject
-      .pipe(debounceTime(400), distinctUntilChanged())
-      .subscribe((term) => this.fetchData(term));
+    this.searchSubject.pipe(debounceTime(400), distinctUntilChanged()).subscribe((term) => {
+      this.currentSearch = term;
+      this.fetchData(term, 0);
+    });
     this.fetchData('');
     this.elementosService.findAll().subscribe({
       next: (data) => this.elementos.set(data),
@@ -152,12 +167,15 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
   }
 
   // ── Dados ────────────────────────────────────────────────────────────────
-  private fetchData(name: string): void {
+  private fetchData(name: string, page = 0): void {
     this.isLoading.set(true);
     this.error.set(null);
-    this.poderesService.findAll(name).subscribe({
-      next: (page) => {
-        this.items.set(page.content);
+    this.poderesService.findAll(name, page).subscribe({
+      next: (data) => {
+        this.items.set(data.content);
+        this.totalPages.set(data.totalPages);
+        this.totalElements.set(data.totalElements);
+        this.currentPage.set(data.number);
         this.isLoading.set(false);
       },
       error: () => {
@@ -165,6 +183,22 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
         this.isLoading.set(false);
       },
     });
+  }
+
+  goToPage(page: number): void {
+    this.fetchData(this.currentSearch, page);
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages() - 1) {
+      this.goToPage(this.currentPage() + 1);
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage() > 0) {
+      this.goToPage(this.currentPage() - 1);
+    }
   }
 
   getBadgeClass(element: string): string {

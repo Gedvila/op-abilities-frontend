@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -17,8 +17,20 @@ import { ArchetypeService } from '../../shared/services/archetype.service';
 export class PoderesClasseComponent implements OnInit, OnDestroy {
   items = signal<PoderClasse[]>([]);
   archetypes = signal<Archetype[]>([]);
+  currentPage = signal(0);
+  totalPages = signal(0);
+  totalElements = signal(0);
   isLoading = signal(true);
   error = signal<string | null>(null);
+  visiblePages = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+    for (let i = Math.max(0, current - 2); i <= Math.min(total - 1, current + 2); i++) {
+      pages.push(i);
+    }
+    return pages;
+  });
 
   selectedItem = signal<PoderClasse | null>(null);
   showForm = signal(false);
@@ -33,17 +45,18 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
   saveError = signal<string | null>(null);
 
   private searchSubject = new Subject<string>();
+  private currentSearch = '';
 
   constructor(
     private poderesClasseService: PoderesClasseService,
-    private archetypeService: ArchetypeService
+    private archetypeService: ArchetypeService,
   ) {}
 
   ngOnInit(): void {
-    this.searchSubject
-      .pipe(debounceTime(400), distinctUntilChanged())
-      .subscribe((term) => this.fetchData(term));
-    this.fetchData('');
+    this.searchSubject.pipe(debounceTime(400), distinctUntilChanged()).subscribe((term) => {
+      this.currentSearch = term;
+      this.fetchData(term, 0);
+    });
     this.archetypeService.findAll().subscribe({
       next: (data) => this.archetypes.set(data),
     });
@@ -145,12 +158,15 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
     });
   }
 
-  private fetchData(name: string): void {
+  private fetchData(name: string, page = 0): void {
     this.isLoading.set(true);
     this.error.set(null);
-    this.poderesClasseService.findAll(name).subscribe({
-      next: (page) => {
-        this.items.set(page.content);
+    this.poderesClasseService.findAll(name, page).subscribe({
+      next: (data) => {
+        this.items.set(data.content);
+        this.totalPages.set(data.totalPages);
+        this.totalElements.set(data.totalElements);
+        this.currentPage.set(data.number);
         this.isLoading.set(false);
       },
       error: () => {
@@ -158,6 +174,16 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
         this.isLoading.set(false);
       },
     });
+  }
+
+  goToPage(page: number): void {
+    this.fetchData(this.currentSearch, page);
+  }
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages() - 1) this.goToPage(this.currentPage() + 1);
+  }
+  prevPage(): void {
+    if (this.currentPage() > 0) this.goToPage(this.currentPage() - 1);
   }
 
   getFields(item: PoderClasse): CardField[] {

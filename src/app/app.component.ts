@@ -31,7 +31,7 @@ export class AppComponent {
     // { id: 'elementos', label: 'Elementos' },
     { id: 'poderes-paranormais', label: 'Poderes Paranormais' },
     { id: 'poderes-classe', label: 'Poderes de Classe' },
-    { id: 'itens', label: 'Itens' },
+    // { id: 'itens', label: 'Itens' },
   ];
 
   activeTab = signal<TabId | null>(null);

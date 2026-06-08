@@ -2,7 +2,9 @@
   <div class="section-header">
     <h2 class="section-title">Poderes Paranormais</h2>
     @if (!isLoading() && !error()) {
-      <span class="section-count">{{ items().length }} encontrados</span>
+      <span class="section-count">
+    {{ totalElements() }} encontrados · página {{ currentPage() + 1 }} de {{ totalPages() }}
+  </span>
     }
   </div>
 
@@ -28,6 +30,33 @@
         <p class="state-empty">Nenhum poder paranormal encontrado.</p>
       }
     </div>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="prevPage()" [disabled]="currentPage() === 0">‹</button>
+
+        @if (visiblePages()[0] > 0) {
+          <button class="page-btn" (click)="goToPage(0)">1</button>
+          @if (visiblePages()[0] > 1) {
+            <span class="page-ellipsis">…</span>
+          }
+        }
+
+        @for (page of visiblePages(); track page) {
+          <button class="page-btn" [class.active]="page === currentPage()" (click)="goToPage(page)">
+            {{ page + 1 }}
+          </button>
+        }
+
+        @if (visiblePages()[visiblePages().length - 1] < totalPages() - 1) {
+          @if (visiblePages()[visiblePages().length - 1] < totalPages() - 2) {
+            <span class="page-ellipsis">…</span>
+          }
+          <button class="page-btn" (click)="goToPage(totalPages() - 1)">{{ totalPages() }}</button>
+        }
+
+        <button class="page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages() - 1">›</button>
+      </div>
+    }
   }
 </section>
 
