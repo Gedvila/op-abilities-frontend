@@ -19,6 +19,51 @@
   } @else if (error()) {
     <div class="state-error">{{ error() }}</div>
   } @else {
+    @if (totalPages() > 0) {
+      <div class="pagination-bar">
+
+        <div class="page-size-control">
+          <label class="page-size-label">Por página</label>
+          <select class="form-input form-select page-size-select"
+                  [value]="pageSize()"
+                  (change)="onPageSizeChange($event)">
+            @for (size of pageSizes; track size) {
+              <option [value]="size">{{ size }}</option>
+            }
+          </select>
+        </div>
+
+        @if (totalPages() > 1) {
+          <div class="pagination">
+            <button class="page-btn" (click)="prevPage()" [disabled]="currentPage() === 0">‹</button>
+
+            @if (visiblePages()[0] > 0) {
+              <button class="page-btn" (click)="goToPage(0)">1</button>
+              @if (visiblePages()[0] > 1) {
+                <span class="page-ellipsis">…</span>
+              }
+            }
+
+            @for (page of visiblePages(); track page) {
+              <button class="page-btn" [class.active]="page === currentPage()" (click)="goToPage(page)">
+                {{ page + 1 }}
+              </button>
+            }
+
+            @if (visiblePages()[visiblePages().length - 1] < totalPages() - 1) {
+              @if (visiblePages()[visiblePages().length - 1] < totalPages() - 2) {
+                <span class="page-ellipsis">…</span>
+              }
+              <button class="page-btn" (click)="goToPage(totalPages() - 1)">{{ totalPages() }}</button>
+            }
+
+            <button class="page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages() - 1">›</button>
+          </div>
+        }
+
+      </div>
+    }
+
     <div class="cards-grid">
       @for (item of items(); track item.id) {
         <app-data-card
@@ -29,33 +74,6 @@
         <p class="state-empty">Nenhuma habilidade de classe encontrada.</p>
       }
     </div>
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="page-btn" (click)="prevPage()" [disabled]="currentPage() === 0">‹</button>
-
-        @if (visiblePages()[0] > 0) {
-          <button class="page-btn" (click)="goToPage(0)">1</button>
-          @if (visiblePages()[0] > 1) {
-            <span class="page-ellipsis">…</span>
-          }
-        }
-
-        @for (page of visiblePages(); track page) {
-          <button class="page-btn" [class.active]="page === currentPage()" (click)="goToPage(page)">
-            {{ page + 1 }}
-          </button>
-        }
-
-        @if (visiblePages()[visiblePages().length - 1] < totalPages() - 1) {
-          @if (visiblePages()[visiblePages().length - 1] < totalPages() - 2) {
-            <span class="page-ellipsis">…</span>
-          }
-          <button class="page-btn" (click)="goToPage(totalPages() - 1)">{{ totalPages() }}</button>
-        }
-
-        <button class="page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages() - 1">›</button>
-      </div>
-    }
   }
 </section>
 

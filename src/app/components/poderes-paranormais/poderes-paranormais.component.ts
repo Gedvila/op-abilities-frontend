@@ -20,6 +20,8 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
   currentPage = signal(0);
   totalPages = signal(0);
   totalElements = signal(0);
+  readonly pageSizes = [20, 40, 60, 80, 100];
+  pageSize = signal(20);
   visiblePages = computed(() => {
     const total = this.totalPages();
     const current = this.currentPage();
@@ -170,7 +172,7 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
   private fetchData(name: string, page = 0): void {
     this.isLoading.set(true);
     this.error.set(null);
-    this.poderesService.findAll(name, page).subscribe({
+    this.poderesService.findAll(name, page, this.pageSize()).subscribe({
       next: (data) => {
         this.items.set(data.content);
         this.totalPages.set(data.totalPages);
@@ -215,5 +217,11 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
       { label: 'Pré-requisito', value: item.prerequisite ?? '—' },
       { label: 'Afinidade', value: item.affinity ?? '—' },
     ];
+  }
+
+  onPageSizeChange(event: Event): void {
+    const size = Number((event.target as HTMLSelectElement).value);
+    this.pageSize.set(size);
+    this.fetchData(this.currentSearch, 0); // volta à página 0 ao mudar o tamanho
   }
 }

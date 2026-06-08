@@ -22,6 +22,8 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
   totalElements = signal(0);
   isLoading = signal(true);
   error = signal<string | null>(null);
+  readonly pageSizes = [20, 40, 60, 80, 100];
+  pageSize = signal(20);
   visiblePages = computed(() => {
     const total = this.totalPages();
     const current = this.currentPage();
@@ -53,13 +55,16 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.archetypeService.findAll().subscribe({
+      next: (data) => this.archetypes.set(data),
+    });
+
     this.searchSubject.pipe(debounceTime(400), distinctUntilChanged()).subscribe((term) => {
       this.currentSearch = term;
       this.fetchData(term, 0);
     });
-    this.archetypeService.findAll().subscribe({
-      next: (data) => this.archetypes.set(data),
-    });
+
+    this.fetchData('');
   }
 
   ngOnDestroy(): void {
@@ -161,7 +166,7 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
   private fetchData(name: string, page = 0): void {
     this.isLoading.set(true);
     this.error.set(null);
-    this.poderesClasseService.findAll(name, page).subscribe({
+    this.poderesClasseService.findAll(name, page, this.pageSize()).subscribe({
       next: (data) => {
         this.items.set(data.content);
         this.totalPages.set(data.totalPages);
@@ -191,5 +196,11 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
       { label: 'Arquétipo', value: item.archetype ?? '—' },
       { label: 'Pré-requisito', value: item.prerequisite ?? '—' },
     ];
+  }
+
+  onPageSizeChange(event: Event): void {
+    const size = Number((event.target as HTMLSelectElement).value);
+    this.pageSize.set(size);
+    this.fetchData(this.currentSearch, 0); // volta à página 0 ao mudar o tamanho
   }
 }
