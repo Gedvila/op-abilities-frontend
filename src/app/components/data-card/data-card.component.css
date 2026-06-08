@@ -98,3 +98,21 @@
   flex: 1;
   min-width: 0;
 }
+
+.card-badge.badge-sangue {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.card-badge.badge-morte {
+  background: rgba(200, 200, 200, 0.85);
+  color: #0d1117;
+  border-color: rgba(200, 200, 200, 0.6);
+}
+
+.card-badge.badge-energia {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  border-color: rgba(139, 92, 246, 0.35);
+}

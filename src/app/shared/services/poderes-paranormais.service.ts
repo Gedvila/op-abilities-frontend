@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { PoderParanormal } from '../models/poder-paranormal.model';
-import { environment } from '../environments/environment';
-import { Page } from '../models/page.model';
+import { PoderParanormal } from '../../models/poder-paranormal.model';
+import { environment } from '../../environments/environment';
+import { Page } from '../../models/page.model';
 
 @Injectable({ providedIn: 'root' })
 export class PoderesParanormaisService {
@@ -19,5 +19,13 @@ export class PoderesParanormaisService {
 
   insert(dto: Omit<PoderParanormal, 'id'>): Observable<PoderParanormal> {
     return this.http.post<PoderParanormal>(this.API_URL, dto);
+  }
+
+  update(id: number, dto: Omit<PoderParanormal, 'id'>): Observable<PoderParanormal> {
+    return this.http.put<PoderParanormal>(this.API_URL, { id, ...dto }, { params: { id } });
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(this.API_URL, { params: { id } });
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ItensService } from '../../services/itens.service';
+import { ItensService } from '../../shared/services/itens.service';
 import { Item } from '../../models/item.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
 

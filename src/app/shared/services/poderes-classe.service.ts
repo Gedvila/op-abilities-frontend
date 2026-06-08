@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { PoderClasse } from '../models/poder-classe.model';
-import { environment } from '../environments/environment';
-import { Page } from '../models/page.model';
+import { PoderClasse } from '../../models/poder-classe.model';
+import { environment } from '../../environments/environment';
+import { Page } from '../../models/page.model';
 
 @Injectable({ providedIn: 'root' })
 export class PoderesClasseService {
@@ -19,5 +19,13 @@ export class PoderesClasseService {
 
   insert(dto: Omit<PoderClasse, 'id'>): Observable<PoderClasse> {
     return this.http.post<PoderClasse>(this.API_URL, dto);
+  }
+
+  update(id: number, dto: Omit<PoderClasse, 'id'>): Observable<PoderClasse> {
+    return this.http.put<PoderClasse>(this.API_URL, { id, ...dto }, { params: { id } });
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(this.API_URL, { params: { id } });
   }
 }

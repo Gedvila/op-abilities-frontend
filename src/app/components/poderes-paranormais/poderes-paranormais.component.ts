@@ -2,10 +2,12 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { PoderesParanormaisService } from '../../services/poderes-paranormais.service';
+import { PoderesParanormaisService } from '../../shared/services/poderes-paranormais.service';
 import { PoderParanormal } from '../../models/poder-paranormal.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
 import { ModalOverlayComponent } from '../modal-overlay/modal-overlay.component';
+import { Elemento } from '../../models/elemento.model';
+import { ElementosService } from '../../shared/services/elementos.service';
 
 @Component({
   selector: 'app-poderes-paranormais',
@@ -14,25 +16,39 @@ import { ModalOverlayComponent } from '../modal-overlay/modal-overlay.component'
 })
 export class PoderesParanormaisComponent implements OnInit, OnDestroy {
   items = signal<PoderParanormal[]>([]);
+  elementos = signal<Elemento[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
 
+  // ── Modais ──────────────────────────────────────────────────────────────
   selectedItem = signal<PoderParanormal | null>(null);
-
   showForm = signal(false);
-  isSaving = signal(false);
-  saveError = signal<string | null>(null);
+  showEditForm = signal(false);
+  showDeleteConfirm = signal(false);
+
+  // ── Estado dos formulários ───────────────────────────────────────────────
   newItem: Partial<PoderParanormal> = {};
+  editItem: Partial<PoderParanormal> = {};
+
+  isSaving = signal(false);
+  isDeleting = signal(false);
+  saveError = signal<string | null>(null);
 
   private searchSubject = new Subject<string>();
 
-  constructor(private poderesService: PoderesParanormaisService) {}
+  constructor(
+    private poderesService: PoderesParanormaisService,
+    private elementosService: ElementosService,
+  ) {}
 
   ngOnInit(): void {
     this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged())
       .subscribe((term) => this.fetchData(term));
     this.fetchData('');
+    this.elementosService.findAll().subscribe({
+      next: (data) => this.elementos.set(data),
+    });
   }
 
   ngOnDestroy(): void {
@@ -43,6 +59,7 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
     this.searchSubject.next((event.target as HTMLInputElement).value);
   }
 
+  // ── Detalhe ──────────────────────────────────────────────────────────────
   openDetail(item: PoderParanormal): void {
     this.selectedItem.set(item);
   }
@@ -50,6 +67,7 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
     this.selectedItem.set(null);
   }
 
+  // ── Criar ────────────────────────────────────────────────────────────────
   openForm(): void {
     this.newItem = {};
     this.saveError.set(null);
@@ -71,11 +89,69 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isSaving.set(false);
-        this.saveError.set('Erro ao guardar. Verifica os dados e tenta novamente.');
+        this.saveError.set('Erro ao guardar.');
       },
     });
   }
 
+  // ── Editar ───────────────────────────────────────────────────────────────
+  openEdit(): void {
+    const item = this.selectedItem();
+    if (!item) return;
+    this.editItem = { ...item }; // cópia para não mutar o original
+    this.saveError.set(null);
+    this.closeDetail();
+    this.showEditForm.set(true);
+  }
+  closeEdit(): void {
+    this.showEditForm.set(false);
+  }
+
+  onSubmitEdit(): void {
+    const id = this.editItem.id;
+    if (!id || !this.editItem.name?.trim()) return;
+    this.isSaving.set(true);
+    this.saveError.set(null);
+    const { id: _, ...dto } = this.editItem as PoderParanormal;
+    this.poderesService.update(id, dto).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.closeEdit();
+        this.fetchData('');
+      },
+      error: () => {
+        this.isSaving.set(false);
+        this.saveError.set('Erro ao guardar.');
+      },
+    });
+  }
+
+  // ── Deletar ──────────────────────────────────────────────────────────────
+  openDeleteConfirm(): void {
+    this.showDeleteConfirm.set(true);
+  }
+  closeDeleteConfirm(): void {
+    this.showDeleteConfirm.set(false);
+  }
+
+  onConfirmDelete(): void {
+    const id = this.selectedItem()?.id;
+    if (!id) return;
+    this.isDeleting.set(true);
+    this.poderesService.delete(id).subscribe({
+      next: () => {
+        this.isDeleting.set(false);
+        this.closeDeleteConfirm();
+        this.closeDetail();
+        this.fetchData('');
+      },
+      error: () => {
+        this.isDeleting.set(false);
+      },
+    });
+  }
+
+  // ── Dados ────────────────────────────────────────────────────────────────
   private fetchData(name: string): void {
     this.isLoading.set(true);
     this.error.set(null);
@@ -89,6 +165,15 @@ export class PoderesParanormaisComponent implements OnInit, OnDestroy {
         this.isLoading.set(false);
       },
     });
+  }
+
+  getBadgeClass(element: string): string {
+    const map: Record<string, string> = {
+      Sangue: 'badge-sangue',
+      Morte: 'badge-morte',
+      Energia: 'badge-energia',
+    };
+    return map[element] ?? '';
   }
 
   getFields(item: PoderParanormal): CardField[] {

@@ -2,10 +2,12 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { PoderesClasseService } from '../../services/poderes-classe.service';
+import { PoderesClasseService } from '../../shared/services/poderes-classe.service';
 import { PoderClasse } from '../../models/poder-classe.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
 import { ModalOverlayComponent } from '../modal-overlay/modal-overlay.component';
+import { Archetype } from '../../models/archetype.model';
+import { ArchetypeService } from '../../shared/services/archetype.service';
 
 @Component({
   selector: 'app-poderes-classe',
@@ -14,25 +16,37 @@ import { ModalOverlayComponent } from '../modal-overlay/modal-overlay.component'
 })
 export class PoderesClasseComponent implements OnInit, OnDestroy {
   items = signal<PoderClasse[]>([]);
+  archetypes = signal<Archetype[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
 
   selectedItem = signal<PoderClasse | null>(null);
-
   showForm = signal(false);
-  isSaving = signal(false);
-  saveError = signal<string | null>(null);
+  showEditForm = signal(false);
+  showDeleteConfirm = signal(false);
+
   newItem: Partial<PoderClasse> = {};
+  editItem: Partial<PoderClasse> = {};
+
+  isSaving = signal(false);
+  isDeleting = signal(false);
+  saveError = signal<string | null>(null);
 
   private searchSubject = new Subject<string>();
 
-  constructor(private poderesClasseService: PoderesClasseService) {}
+  constructor(
+    private poderesClasseService: PoderesClasseService,
+    private archetypeService: ArchetypeService
+  ) {}
 
   ngOnInit(): void {
     this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged())
       .subscribe((term) => this.fetchData(term));
     this.fetchData('');
+    this.archetypeService.findAll().subscribe({
+      next: (data) => this.archetypes.set(data),
+    });
   }
 
   ngOnDestroy(): void {
@@ -71,7 +85,62 @@ export class PoderesClasseComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isSaving.set(false);
-        this.saveError.set('Erro ao guardar. Verifica os dados e tenta novamente.');
+        this.saveError.set('Erro ao guardar.');
+      },
+    });
+  }
+
+  openEdit(): void {
+    const item = this.selectedItem();
+    if (!item) return;
+    this.editItem = { ...item };
+    this.saveError.set(null);
+    this.closeDetail();
+    this.showEditForm.set(true);
+  }
+  closeEdit(): void {
+    this.showEditForm.set(false);
+  }
+
+  onSubmitEdit(): void {
+    const id = this.editItem.id;
+    if (!id || !this.editItem.name?.trim()) return;
+    this.isSaving.set(true);
+    this.saveError.set(null);
+    const { id: _, ...dto } = this.editItem as PoderClasse;
+    this.poderesClasseService.update(id, dto).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.closeEdit();
+        this.fetchData('');
+      },
+      error: () => {
+        this.isSaving.set(false);
+        this.saveError.set('Erro ao guardar.');
+      },
+    });
+  }
+
+  openDeleteConfirm(): void {
+    this.showDeleteConfirm.set(true);
+  }
+  closeDeleteConfirm(): void {
+    this.showDeleteConfirm.set(false);
+  }
+
+  onConfirmDelete(): void {
+    const id = this.selectedItem()?.id;
+    if (!id) return;
+    this.isDeleting.set(true);
+    this.poderesClasseService.delete(id).subscribe({
+      next: () => {
+        this.isDeleting.set(false);
+        this.closeDeleteConfirm();
+        this.closeDetail();
+        this.fetchData('');
+      },
+      error: () => {
+        this.isDeleting.set(false);
       },
     });
   }

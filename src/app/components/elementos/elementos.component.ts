@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ElementosService } from '../../services/elementos.service';
+import { ElementosService } from '../../shared/services/elementos.service';
 import { Elemento } from '../../models/elemento.model';
 import { DataCardComponent, CardField } from '../data-card/data-card.component';
 

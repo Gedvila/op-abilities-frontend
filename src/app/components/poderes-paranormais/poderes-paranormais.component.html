@@ -7,12 +7,8 @@
   </div>
 
   <div class="search-row">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="Pesquisar por nome..."
-      (input)="onSearch($event)"
-    />
+    <input type="text" class="search-input" placeholder="Pesquisar por nome..."
+           (input)="onSearch($event)" />
     <button class="btn-create" (click)="openForm()" title="Novo poder paranormal">＋</button>
   </div>
 
@@ -24,12 +20,10 @@
     <div class="cards-grid">
       @for (item of items(); track item.id) {
         <app-data-card
-          [title]="item.name"
-          [description]="item.description"
-          [fields]="getFields(item)"
-          [badge]="item.element"
-          (cardClick)="openDetail(item)"
-        />
+          [title]="item.name" [description]="item.description"
+          [fields]="getFields(item)" [badge]="item.element"
+          [badgeClass]="getBadgeClass(item.element)"
+          (cardClick)="openDetail(item)" />
       } @empty {
         <p class="state-empty">Nenhum poder paranormal encontrado.</p>
       }
@@ -37,10 +31,10 @@
   }
 </section>
 
-<!-- Modal de detalhe -->
+<!-- ── Modal de detalhe ───────────────────────────────────────────────────── -->
 <app-modal-overlay [isOpen]="selectedItem() !== null" (closed)="closeDetail()">
   @if (selectedItem(); as item) {
-    <span class="modal-badge">{{ item.element }}</span>
+    <span [class]="'modal-badge ' + getBadgeClass(item.element)">{{ item.element }}</span>
     <h2 class="modal-title">{{ item.name }}</h2>
     @if (item.description) {
       <p class="modal-description">{{ item.description }}</p>
@@ -55,10 +49,71 @@
         <span class="modal-field-value">{{ item.affinity ?? '—' }}</span>
       </li>
     </ul>
+    <div class="modal-footer">
+      <button class="btn-danger-outline" (click)="openDeleteConfirm()">🗑 Deletar</button>
+      <button class="btn-edit" (click)="openEdit()">✏ Editar</button>
+    </div>
   }
 </app-modal-overlay>
 
-<!-- Modal de cadastro -->
+<!-- ── Modal de confirmação de deleção ───────────────────────────────────── -->
+<app-modal-overlay [isOpen]="showDeleteConfirm()" (closed)="closeDeleteConfirm()">
+  <div class="confirm-dialog">
+    <h3 class="confirm-title">Confirmar eliminação</h3>
+    <p class="confirm-text">
+      Tens a certeza que queres eliminar
+      <strong>{{ selectedItem()?.name }}</strong>?
+      Esta acção não pode ser desfeita.
+    </p>
+    <div class="form-actions">
+      <button class="btn-secondary" (click)="closeDeleteConfirm()">Cancelar</button>
+      <button class="btn-danger" (click)="onConfirmDelete()" [disabled]="isDeleting()">
+        {{ isDeleting() ? 'A eliminar...' : 'Eliminar' }}
+      </button>
+    </div>
+  </div>
+</app-modal-overlay>
+
+<!-- ── Modal de edição ────────────────────────────────────────────────────── -->
+<app-modal-overlay [isOpen]="showEditForm()" (closed)="closeEdit()">
+  <h2 class="modal-title">Editar Poder Paranormal</h2>
+  <form class="modal-form" (ngSubmit)="onSubmitEdit()">
+    <div class="form-group">
+      <label class="form-label">Nome *</label>
+      <input class="form-input" [(ngModel)]="editItem.name" name="name" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Elemento</label>
+      <select class="form-input form-select" [(ngModel)]="editItem.element" name="element">
+        <option value="">-- Seleciona um elemento --</option>
+        @for (el of elementos(); track el.id) {
+          <option [value]="el.name">{{ el.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pré-requisito</label>
+      <input class="form-input" [(ngModel)]="editItem.prerequisite" name="prerequisite" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="editItem.description" name="description"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Afinidade</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="editItem.affinity" name="affinity"></textarea>
+    </div>
+    @if (saveError()) { <div class="state-error">{{ saveError() }}</div> }
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="closeEdit()">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="isSaving()">
+        {{ isSaving() ? 'A guardar...' : 'Guardar alterações' }}
+      </button>
+    </div>
+  </form>
+</app-modal-overlay>
+
+<!-- ── Modal de cadastro ──────────────────────────────────────────────────── -->
 <app-modal-overlay [isOpen]="showForm()" (closed)="closeForm()">
   <h2 class="modal-title">Novo Poder Paranormal</h2>
   <form class="modal-form" (ngSubmit)="onSubmitCreate()">
@@ -68,7 +123,12 @@
     </div>
     <div class="form-group">
       <label class="form-label">Elemento</label>
-      <input class="form-input" [(ngModel)]="newItem.element" name="element" placeholder="Ex: Conhecimento" />
+      <select class="form-input form-select" [(ngModel)]="newItem.element" name="element">
+        <option value="">-- Seleciona um elemento --</option>
+        @for (el of elementos(); track el.id) {
+          <option [value]="el.name">{{ el.name }}</option>
+        }
+      </select>
     </div>
     <div class="form-group">
       <label class="form-label">Pré-requisito</label>
@@ -82,9 +142,7 @@
       <label class="form-label">Afinidade</label>
       <textarea class="form-input form-textarea" [(ngModel)]="newItem.affinity" name="affinity" placeholder="Efeito de afinidade"></textarea>
     </div>
-    @if (saveError()) {
-      <div class="state-error">{{ saveError() }}</div>
-    }
+    @if (saveError()) { <div class="state-error">{{ saveError() }}</div> }
     <div class="form-actions">
       <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
       <button type="submit" class="btn-primary" [disabled]="isSaving()">

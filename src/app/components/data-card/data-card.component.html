@@ -1,7 +1,6 @@
 <article class="card" (click)="cardClick.emit()">
   @if (badge) {
-    <span class="card-badge">{{ badge }}</span>
-  }
+    <span [class]="'card-badge ' + (badgeClass ?? '')">{{ badge }}</span>  }
 
   <h3 class="card-title">{{ title }}</h3>
 

@@ -24,5 +24,7 @@ export class DataCardComponent {
   /** Rótulo colorido no canto superior do card */
   @Input() badge?: string;
 
+  @Input() badgeClass?: string;
+
   @Output() cardClick = new EventEmitter<void>();
 }
